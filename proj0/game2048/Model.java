@@ -1,6 +1,5 @@
 package game2048;
 
-import javax.naming.ldap.HasControls;
 import java.util.*;
 
 
@@ -172,7 +171,7 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         for (Tile tile : b) {
-            if (tile == null || tile.value() == 0) {
+            if (tile == null) {
                 return true;
             }
         }
@@ -200,20 +199,14 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     private static boolean isAdjacentTilesExists(Board b) {
-        Side[] AllSides = new Side[] {
-                Side.NORTH,
-                Side.WEST,
-                Side.EAST,
-                Side.SOUTH
-        };
         int boardSize = b.size();
-        for (Side side : AllSides) {
-            b.setViewingPerspective(side);
-            for (int i = 0; i < boardSize - 1; i++) {
-                for (int j =0; j < boardSize - 1; j++) {
-                    if (b.tile(i,j).value() == b.tile(i,j+1).value()) {
-                        return true;
-                    }
+        for (int col = 0; col < boardSize; col++) {
+            for (int row = 0; row < boardSize; row++) {
+                if ((row + 1 < boardSize) && b.tile(col, row).value() == b.tile(col, row + 1).value()) {
+                    return true;
+                }
+                if ((col + 1 < boardSize) && b.tile(col, row).value() == b.tile(col + 1, row).value()) {
+                    return true;
                 }
             }
         }

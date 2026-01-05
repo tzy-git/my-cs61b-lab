@@ -37,7 +37,7 @@ public class TestAtLeastOneMoveExists {
     @Test
     /** Tests a board where a tilt in any direction would cause a change. */
     public void testAnyDir() {
-        int[][] rawVals = new int[][] {
+        int[][] rawVals = new int[][]{
                 {2, 4, 2, 2},
                 {4, 2, 4, 2},
                 {2, 4, 2, 4},
