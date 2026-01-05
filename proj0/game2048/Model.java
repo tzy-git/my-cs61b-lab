@@ -1,8 +1,7 @@
 package game2048;
 
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.Observable;
+import javax.naming.ldap.HasControls;
+import java.util.*;
 
 
 /** The state of a game of 2048.
@@ -107,6 +106,37 @@ public class Model extends Observable {
      *    value, then the leading two tiles in the direction of motion merge,
      *    and the trailing tile does not.
      * */
+    private boolean tiltOnlyUp() {
+        boolean isMove = false;
+        for (int col = 0; col < board.size(); col++) {
+            Set<Integer> mergeSet = new HashSet<>();
+            for (int row = board.size() - 1; row >= 0; row--) {
+                Tile tile = board.tile(col, row);
+                if (tile == null) {
+                    continue;
+                }
+                int targetRow = row;
+                while (targetRow < board.size() - 1 &&
+                        board.tile(col, targetRow + 1) == null) {
+                    targetRow++;
+                }
+                if (targetRow < board.size() - 1 &&
+                        (board.tile(col, targetRow + 1).value() == tile.value() && !mergeSet.contains(targetRow + 1))) {
+                    targetRow++;
+                }
+                if (targetRow == row) {
+                    continue;
+                }
+                boolean isMerged = board.move(col, targetRow, tile);
+                if (isMerged) {
+                    mergeSet.add(targetRow);
+                    score += board.tile(col, targetRow).value();
+                }
+                isMove = true;
+            }
+        }
+        return isMove;
+    }
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
@@ -114,11 +144,14 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-
+        Side originSide = board.getViewingPerspective();
+        board.setViewingPerspective(side);
+        changed = tiltOnlyUp();
         checkGameOver();
         if (changed) {
             setChanged();
         }
+        board.setViewingPerspective(originSide);
         return changed;
     }
 
@@ -138,9 +171,8 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
         for (Tile tile : b) {
-            if (tile != null || tile.value() != 0) {
+            if (tile == null || tile.value() == 0) {
                 return true;
             }
         }
@@ -153,7 +185,6 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
         for (Tile tile : b) {
             if (tile != null && tile.value() == MAX_PIECE) {
                 return true;
@@ -168,13 +199,30 @@ public class Model extends Observable {
      * 1. There is at least one empty space on the board.
      * 2. There are two adjacent tiles with the same value.
      */
-    public static boolean atLeastOneMoveExists(Board b) {
-        if (emptySpaceExists(b)) {
-            return true;
+    private static boolean isAdjacentTilesExists(Board b) {
+        Side[] AllSides = new Side[] {
+                Side.NORTH,
+                Side.WEST,
+                Side.EAST,
+                Side.SOUTH
+        };
+        int boardSize = b.size();
+        for (Side side : AllSides) {
+            b.setViewingPerspective(side);
+            for (int i = 0; i < boardSize - 1; i++) {
+                for (int j =0; j < boardSize - 1; j++) {
+                    if (b.tile(i,j).value() == b.tile(i,j+1).value()) {
+                        return true;
+                    }
+                }
+            }
         }
-        // TODO: There are two adjacent tiles with the same value.
 
         return false;
+    }
+
+    public static boolean atLeastOneMoveExists(Board b) {
+        return emptySpaceExists(b) || isAdjacentTilesExists(b);
     }
 
 
