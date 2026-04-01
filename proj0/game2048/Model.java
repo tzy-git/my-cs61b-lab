@@ -180,14 +180,18 @@ public class Model extends Observable {
         else{
             for(int i=0;i<b.size();i++){
                 for(int j=0;j<b.size();j++){
-                    if(i-1>=0&&b.tile(i,j)==b.tile(i-1,j)){
-                        return true;
-                    }else if(i+1<b.size()&&b.tile(i,j)==b.tile(i+1,j)){
-                        return true;
-                    }else if(j-1>=0&&b.tile(i,j)==b.tile(i,j-1)){
-                        return true;
-                    }else if(j+1<b.size()&&b.tile(i,j)==b.tile(i,j+1)){
-                        return true;
+                    Tile t=b.tile(i,j);
+                    if(i+1<b.size()){
+                        Tile down=b.tile(i+1,j);
+                        if(t.value()==down.value()) {
+                            return true;
+                        }
+                    }
+                    if(j+1<b.size()){
+                        Tile right=b.tile(i,j+1);
+                        if(t.value()==right.value()) {
+                            return true;
+                        }
                     }
                 }
             }
