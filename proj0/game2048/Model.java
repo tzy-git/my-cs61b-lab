@@ -113,10 +113,40 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        board.setViewingPerspective(side);
+        for (int col = 0; col < board.size(); col++) {
+            boolean[] merged  = new boolean[board.size()];
+            for (int row = board.size()-2; row >= 0; row--) {
+                int targetrow = row;
+                Tile tile1 = board.tile(col, row);
+                if(tile1==null) continue;
+                for(int trow = row+1 ;trow< board.size(); trow++) {
+                    Tile tr = board.tile(col,trow);
+                    if(tr == null){
+                        targetrow = trow;
+                    }else if(tr.value()==tile1.value() && !merged[trow]){
+                        targetrow = trow;
+                        break;
+                    }else{
+                        break;
+                    }
+                }
+                if(targetrow!=row){
+                    if(board.move(col,targetrow,tile1)) {
+                        Tile target = board.tile(col,targetrow);
+                        score+=target.value();
+                        merged[targetrow] = true;
+                    }
+                    changed = true;
 
+                }
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
+            notifyObservers();
         }
         return changed;
     }
@@ -158,7 +188,7 @@ public class Model extends Observable {
         for(int i=0;i<b.size();i++){
             for(int j=0;j<b.size();j++){
                 Tile t=b.tile(i,j);
-                if(t.value()==MAX_PIECE){
+                if(t!=null&&t.value()==MAX_PIECE){
                     return true;
                 }
             }
@@ -181,6 +211,9 @@ public class Model extends Observable {
             for(int i=0;i<b.size();i++){
                 for(int j=0;j<b.size();j++){
                     Tile t=b.tile(i,j);
+                    if(t==null){
+                        return true;
+                    }
                     if(i+1<b.size()){
                         Tile down=b.tile(i+1,j);
                         if(t.value()==down.value()) {
